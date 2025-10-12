@@ -1,0 +1,13 @@
+{
+  "domain": "hass_school_holidays_lu",
+  "name": "School Holidays Luxembourg",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "",
+  "loggers": ["hass_school_holidays_lu"],
+  "requirements": [],
+  "version": "0.0.1"
+}
