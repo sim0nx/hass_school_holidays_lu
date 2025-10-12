@@ -1,5 +1,7 @@
 """The hass_school_holidays_lu custom calendar integration."""
+
 import logging
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -7,6 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "hass_school_holidays_lu"
 PLATFORMS = ["calendar"]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up hass_school_holidays_lu from a config entry."""
