@@ -1,6 +1,6 @@
 """School holidays in Luxembourg custom Home Assistant calendar Integration."""
 
-from datetime import date, datetime
+import datetime
 import hashlib
 import logging
 
@@ -143,11 +143,15 @@ class HolidaysCalendarEntity(CalendarEntity, Entity):
 
                 # Parse dates. Assuming ISO 8601 format
                 try:
-                    start_dt = date.fromisoformat(start_dt_str)
-                    end_dt = date.fromisoformat(end_dt_str)
+                    start_dt = datetime.date.fromisoformat(start_dt_str)
+                    end_dt = datetime.date.fromisoformat(end_dt_str)
                 except ValueError as ve:
                     _LOGGER.error("Date parsing failed for event %s: %s", summary, ve)
                     continue
+
+                # CalendarEntity end date is exclusive for all-day events.
+                # We must add one day to the reported end date to include the final day.
+                end_dt += datetime.timedelta(days=1)
 
                 # --- Generate deterministic UID if missing ---
                 if not uid:
@@ -172,7 +176,10 @@ class HolidaysCalendarEntity(CalendarEntity, Entity):
         _LOGGER.debug("Entity cache updated with %s events.", len(events))
 
     async def async_get_events(
-        self, hass: HomeAssistant, start_date: datetime, end_date: datetime
+        self,
+        hass: HomeAssistant,
+        start_date: datetime.datetime,
+        end_date: datetime.datetime,
     ) -> list[CalendarEvent]:
         """Return cached events between start_date and end_date."""
 
