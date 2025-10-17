@@ -7,25 +7,23 @@ from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "hass_school_holidays_lu"
 PLATFORMS = ["calendar"]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up hass_school_holidays_lu from a config entry."""
-    _LOGGER.debug(f"Setting up entry for {entry.title}")
-
-    # Load the calendar platform from the config entry
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up School Holidays LU from a config entry."""
+    # This will forward the setup request to the calendar.py platform file
+    # which then runs async_setup_entry in that file.
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    _LOGGER.debug(f"Unloading entry for {entry.title}")
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Unload a config entry for the School Holidays LU integration."""
+    # This will forward the unload request to the calendar.py platform file
+    unload_ok = await hass.config_entries.async_forward_entry_unload(entry, "calendar")
 
-    # Unload the calendar platform
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unload_ok:
+        _LOGGER.info("Integration hass_school_holidays_lu unloaded successfully.")
 
     return unload_ok

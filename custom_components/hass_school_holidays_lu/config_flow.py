@@ -7,18 +7,17 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_URL
 
-_LOGGER = logging.getLogger(__name__)
+from . import const
 
-# Constants (MUST match calendar.py)
-CONF_LANGUAGE = "language"
-SUPPORTED_LANGUAGES = ["EN", "FR", "DE", "LB"]
-STATIC_URL = "https://example.com/events.json"
+_LOGGER = logging.getLogger(__name__)
 
 # Schema to present to the user
 DATA_SCHEMA = vol.Schema(
     {
         # Use vol.In for a dropdown selection of supported languages, defaulting to English
-        vol.Required(CONF_LANGUAGE, default="EN"): vol.In(SUPPORTED_LANGUAGES),
+        vol.Required(const.CONF_LANGUAGE, default="EN"): vol.In(
+            const.SUPPORTED_LANGUAGES
+        ),
     }
 )
 
@@ -40,12 +39,12 @@ class HASSURLCalendarConfigFlow(
         errors = {}
 
         if user_input is not None:
-            selected_lang = user_input[CONF_LANGUAGE]
+            selected_lang = user_input[const.CONF_LANGUAGE]
 
             # Create the config entry with the selected language and the static URL
             return self.async_create_entry(
                 title=f"School Holidays LU ({selected_lang})",
-                data={CONF_URL: STATIC_URL, CONF_LANGUAGE: selected_lang},
+                data={CONF_URL: const.DEFAULT_URL, const.CONF_LANGUAGE: selected_lang},
             )
 
         # Show the form to the user

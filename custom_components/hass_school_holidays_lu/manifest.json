@@ -1,7 +1,7 @@
 {
   "domain": "hass_school_holidays_lu",
   "name": "School Holidays Luxembourg",
-  "codeowners": [],
+  "codeowners": ["@sim0nx"],
   "config_flow": true,
   "dependencies": [],
   "documentation": "",
@@ -9,5 +9,6 @@
   "issue_tracker": "",
   "loggers": ["hass_school_holidays_lu"],
   "requirements": [],
-  "version": "0.0.1"
+  "single_config_entry": true,
+  "version": "0.1.0"
 }
