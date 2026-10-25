@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Choose the language of the holiday names.",
+        "data": {
+          "language": "Language"
+        },
+        "data_description": {
+          "language": "Language used for the holiday names in the calendar."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "School Holidays Luxembourg is already configured."
+    }
+  }
+}

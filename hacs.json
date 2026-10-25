@@ -1,5 +1,6 @@
 {
     "name": "School Holidays Luxembourg",
+    "country": "LU",
     "hacs": "2.0",
-    "homeassistant": "2025.0.0"
+    "homeassistant": "2025.3.0"
 }

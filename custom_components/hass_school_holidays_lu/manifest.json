@@ -4,11 +4,11 @@
   "codeowners": ["@sim0nx"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "",
+  "documentation": "https://github.com/sim0nx/hass_school_holidays_lu",
+  "integration_type": "service",
   "iot_class": "cloud_polling",
-  "issue_tracker": "",
-  "loggers": ["hass_school_holidays_lu"],
+  "issue_tracker": "https://github.com/sim0nx/hass_school_holidays_lu/issues",
   "requirements": [],
   "single_config_entry": true,
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

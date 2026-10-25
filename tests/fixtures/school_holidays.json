@@ -1,0 +1,42 @@
+[
+  {
+    "en": "Christmas holidays",
+    "start_date": "2025-12-20",
+    "end_date": "2026-01-04",
+    "fr": "Vacances de Noël",
+    "de": "Weihnachtsferien",
+    "lb": "Chrëschtvakanz"
+  },
+  {
+    "en": "Carnival holidays",
+    "start_date": "2026-02-14",
+    "end_date": "2026-02-22",
+    "fr": "Congé de Carnaval",
+    "de": "Karnevalsferien",
+    "lb": "Fuesvakanz"
+  },
+  {
+    "en": "Easter holidays",
+    "start_date": "2026-03-28",
+    "end_date": "2026-04-12",
+    "fr": "Vacances de Pâques",
+    "de": "Osterferien",
+    "lb": "Ouschtervakanz"
+  },
+  {
+    "en": "Europe Day",
+    "start_date": "2026-05-09",
+    "end_date": "2026-05-09",
+    "fr": "Journée de l'Europe",
+    "de": "Europatag",
+    "lb": "Europadag"
+  },
+  {
+    "en": "Public holiday on Ascension Day",
+    "start_date": "2026-05-04",
+    "end_date": "2026-05-04",
+    "fr": "Jour férié de l'Ascension",
+    "de": "Feiertag Christi Himmelfahrt",
+    "lb": "Feierdag Christi Himmelfaart"
+  }
+]

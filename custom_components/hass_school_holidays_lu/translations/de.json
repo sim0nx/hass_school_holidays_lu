@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Wählen Sie die Sprache der Feriennamen.",
+        "data": {
+          "language": "Sprache"
+        },
+        "data_description": {
+          "language": "Sprache der Feriennamen im Kalender."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "School Holidays Luxembourg ist bereits eingerichtet."
+    }
+  }
+}

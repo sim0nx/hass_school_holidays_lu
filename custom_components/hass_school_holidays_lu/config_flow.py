@@ -1,59 +1,55 @@
-"""Config flow for hass_school_holidays_lu integration."""
+"""Config flow for the School Holidays LU integration."""
 
-import logging
+from typing import Any
 
 import voluptuous as vol
 
-from homeassistant import config_entries
-from homeassistant.const import CONF_URL
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
-from . import const
+from .const import CONF_LANGUAGE, DOMAIN, SUPPORTED_LANGUAGES
+from .coordinator import normalize_language
 
-_LOGGER = logging.getLogger(__name__)
-
-# Schema to present to the user
-DATA_SCHEMA = vol.Schema(
-    {
-        # Use vol.In for a dropdown selection of supported languages, defaulting to English
-        vol.Required(const.CONF_LANGUAGE, default="EN"): vol.In(
-            const.SUPPORTED_LANGUAGES
-        ),
-    }
+LANGUAGE_SELECTOR = SelectSelector(
+    SelectSelectorConfig(
+        options=[
+            SelectOptionDict(value=code, label=label)
+            for code, label in SUPPORTED_LANGUAGES.items()
+        ],
+        mode=SelectSelectorMode.DROPDOWN,
+    )
 )
 
 
-class HASSURLCalendarConfigFlow(
-    config_entries.ConfigFlow, domain="hass_school_holidays_lu"
-):
-    """Handle a config flow for the school holidays URL calendar."""
+class SchoolHolidaysLuConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for School Holidays LU."""
 
     VERSION = 1
 
-    async def async_step_user(self, user_input=None):
-        """Handle the initial step to configure language."""
-
-        # Check if a config entry already exists. This integration only supports one instance.
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
-
-        errors = {}
-
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Let the user pick the language of the event titles."""
         if user_input is not None:
-            selected_lang = user_input[const.CONF_LANGUAGE]
-
-            # Create the config entry with the selected language and the static URL
+            language = user_input[CONF_LANGUAGE]
             return self.async_create_entry(
-                title=f"School Holidays LU ({selected_lang})",
-                data={CONF_URL: const.DEFAULT_URL, const.CONF_LANGUAGE: selected_lang},
+                title=f"School Holidays LU ({language.upper()})",
+                data={CONF_LANGUAGE: language},
             )
 
-        # Show the form to the user
+        default_language = normalize_language(self.hass.config.language)
         return self.async_show_form(
             step_id="user",
-            data_schema=DATA_SCHEMA,
-            errors=errors,
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_LANGUAGE, default=default_language
+                    ): LANGUAGE_SELECTOR,
+                }
+            ),
         )
-
-    async def async_step_import(self, import_config):
-        """Handle configuration from YAML. Not supported for this flow."""
-        return self.async_abort(reason="not_supported")

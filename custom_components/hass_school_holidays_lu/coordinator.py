@@ -1,99 +1,118 @@
 """Data update coordinator for the School Holidays LU Calendar integration."""
 
+import datetime
+import hashlib
 import logging
 from typing import Any
 
-import aiohttp.http_exceptions
+import aiohttp
 
+from homeassistant.components.calendar import CalendarEvent
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from . import const
+from .const import (
+    CONF_LANGUAGE,
+    DATA_URL,
+    DEFAULT_LANGUAGE,
+    DOMAIN,
+    FALLBACK_SUMMARY,
+    REQUEST_TIMEOUT,
+    SUPPORTED_LANGUAGES,
+    UPDATE_INTERVAL,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
+type HolidaysConfigEntry = ConfigEntry[HolidaysDataUpdateCoordinator]
 
-class HolidaysDataUpdateCoordinator(DataUpdateCoordinator):
-    """Coordinator to fetch and store the school holidays data."""
 
-    def __init__(self, hass: HomeAssistant, event_url: str):
+def normalize_language(language: str | None) -> str:
+    """Map a language code (e.g. "EN", "de-CH") to a supported dataset language."""
+    if language:
+        code = language.lower().split("-")[0].split("_")[0]
+        if code in SUPPORTED_LANGUAGES:
+            return code
+    return DEFAULT_LANGUAGE
+
+
+def get_localized_summary(raw_event: dict[str, Any], language: str) -> str:
+    """Pick the summary in the preferred language, falling back to English, then any."""
+    for lang in (language, DEFAULT_LANGUAGE, *SUPPORTED_LANGUAGES):
+        if summary := raw_event.get(lang):
+            if lang != language:
+                _LOGGER.debug("Summary missing for %s, using %s", language, lang)
+            return summary
+    _LOGGER.warning("No summary found in any supported language for %s", raw_event)
+    return FALLBACK_SUMMARY
+
+
+def parse_events(raw_events: list[Any], language: str) -> list[CalendarEvent]:
+    """Parse the raw dataset into all-day calendar events, sorted by start."""
+    events: list[CalendarEvent] = []
+    for raw_event in raw_events:
+        if not isinstance(raw_event, dict):
+            _LOGGER.warning("Skipping malformed event: %s", raw_event)
+            continue
+
+        start_str = raw_event.get("start_date")
+        end_str = raw_event.get("end_date")
+        if not isinstance(start_str, str) or not isinstance(end_str, str):
+            _LOGGER.warning("Skipping event without start or end date: %s", raw_event)
+            continue
+
+        try:
+            start = datetime.date.fromisoformat(start_str)
+            # The dataset end date is inclusive, the calendar end date is exclusive.
+            end = datetime.date.fromisoformat(end_str) + datetime.timedelta(days=1)
+        except ValueError as err:
+            _LOGGER.warning("Skipping event with invalid date %s: %s", raw_event, err)
+            continue
+
+        summary = get_localized_summary(raw_event, language)
+
+        if not (uid := raw_event.get("uid")):
+            uid = hashlib.sha256(f"{summary}{start_str}{end_str}".encode()).hexdigest()
+
+        events.append(CalendarEvent(summary=summary, start=start, end=end, uid=uid))
+
+    events.sort(key=lambda event: (event.start, event.end))
+    return events
+
+
+class HolidaysDataUpdateCoordinator(DataUpdateCoordinator[list[CalendarEvent]]):
+    """Coordinator to fetch and parse the school holidays data."""
+
+    config_entry: HolidaysConfigEntry
+
+    def __init__(self, hass: HomeAssistant, config_entry: HolidaysConfigEntry) -> None:
         """Initialize the data update coordinator."""
-        self.event_url = event_url
-
         super().__init__(
             hass,
             _LOGGER,
-            name=const.DOMAIN,
-            update_interval=const.SCAN_INTERVAL,
+            config_entry=config_entry,
+            name=DOMAIN,
+            update_interval=UPDATE_INTERVAL,
         )
+        self.language = normalize_language(config_entry.data.get(CONF_LANGUAGE))
 
-    def get_localized_summary(
-        self, localized_summary_data: dict, preferred_lang: str, fallback_lang="EN"
-    ) -> str:
-        """Picks the best summary string based on preferred language and fallback."""
-
-        # 1. Try the preferred language
-        if preferred_lang in localized_summary_data:
-            return localized_summary_data[preferred_lang]
-
-        # 2. Try the primary fallback (English 'EN')
-        if fallback_lang in localized_summary_data:
-            _LOGGER.debug(
-                "Title missing for %s, falling back to %s.",
-                preferred_lang,
-                fallback_lang,
-            )
-            return localized_summary_data[fallback_lang]
-
-        # 3. Try any available supported language as a last resort
-        for lang in const.SUPPORTED_LANGUAGES:
-            if lang in localized_summary_data:
-                _LOGGER.warning(
-                    "Title missing for %s and EN, using available language %s.",
-                    preferred_lang,
-                    lang,
-                )
-                return localized_summary_data[lang]
-
-        # 4. Final fallback
-        _LOGGER.error(
-            "No valid summary found in any supported language for event data."
-        )
-        return "Unknown Event"
-
-    async def _async_update_data(self) -> list[Any]:
-        """Fetch and parse the latest data directly from the URL. Fails if fetch is unsuccessful."""
-        _LOGGER.debug("Coordinator updating data from %s", self.event_url)
-
+    async def _async_update_data(self) -> list[CalendarEvent]:
+        """Fetch the dataset and parse it into calendar events."""
         session = async_get_clientsession(self.hass)
-        raw_events = None
-
-        # --- Attempt: Fetch from URL ---
         try:
             async with session.get(
-                self.event_url, timeout=20, allow_redirects=True
+                DATA_URL, timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
             ) as response:
-                if response.status == 200:
-                    raw_events = await response.json()
-                    _LOGGER.debug("Successfully fetched events from URL.")
-                else:
-                    # Fail on non-200 status
-                    _LOGGER.error(
-                        "URL fetch failed (Status: %s). HTTP error encountered.",
-                        response.status,
-                    )
-                    raise UpdateFailed(
-                        "URL fetch failed with status: %s", response.status
-                    )
+                response.raise_for_status()
+                raw_events = await response.json(content_type=None)
+        except (aiohttp.ClientError, TimeoutError) as err:
+            raise UpdateFailed(f"Error fetching school holidays: {err}") from err
+        except ValueError as err:
+            raise UpdateFailed(f"Invalid JSON in school holidays data: {err}") from err
 
-        except (OSError, aiohttp.http_exceptions.HttpProcessingError) as err:
-            # Fail on network/other error
-            _LOGGER.error("Network error fetching data from URL: %s.", err)
-            raise UpdateFailed(f"Network error fetching data: {err}")
+        if not isinstance(raw_events, list):
+            raise UpdateFailed("Unexpected school holidays data format")
 
-        if raw_events is None:
-            # Defensive check, should be covered by the try/except/status check
-            raise UpdateFailed("URL fetch returned no data unexpectedly.")
-
-        return raw_events  # Return the raw list for the entity to parse
+        return parse_events(raw_events, self.language)
