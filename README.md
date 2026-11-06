@@ -1,6 +1,5 @@
 # School Holidays Luxembourg
 
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
 [![Validate](https://github.com/sim0nx/hass_school_holidays_lu/actions/workflows/validate.yml/badge.svg)](https://github.com/sim0nx/hass_school_holidays_lu/actions/workflows/validate.yml)
 
 <img src="custom_components/hass_school_holidays_lu/brand/icon.png" alt="School Holidays Luxembourg logo" width="128">
