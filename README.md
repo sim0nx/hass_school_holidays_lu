@@ -10,12 +10,19 @@ Luxembourg, based on the [official dataset on data.public.lu](https://data.publi
 
 ## Installation
 
-Add this repository as a custom repository in HACS, or copy
-`custom_components/hass_school_holidays_lu` into your Home Assistant
-`config/custom_components` folder. Requires Home Assistant 2025.3 or newer;
-the integration logo is shown from Home Assistant 2026.3 onwards.
+<!-- ha-marketplace:exclude-start -->
 
-## Configuration
+### Home Assistant 2026.11 or later
+
+[![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=sim0nx&repository=hass_school_holidays_lu)
+
+Open the link above, or go to **Settings > Marketplace** and search for **School Holidays Luxembourg** and click on **Install**.
+
+### Home Assistant < 2026.11
+
+Use HACS 2.0 or later. In **HACS** search for **School Holidays Luxembourg** and click on **Install**.
+
+<!-- ha-marketplace:exclude-end -->
 
 Add the integration from **Settings → Devices & services**. Pick the language
 for the holiday names (English, Français, Deutsch or Lëtzebuergesch). The form
